@@ -12,16 +12,13 @@ fi
 
 # The contents of
 # ./preprocess_train_evaluate.sh $input_file
-corpus_conll=${input_file}_filtered
-grep -Ev '^#' ${input_file} > ${corpus_conll}
-corpus_processed=${corpus_conll}_processed
-
-python preprocess.py --input_path ${corpus_conll} --output_path ${corpus_processed}
+corpus_processed=${input_file}_processed
+python preprocess.py --input_path ${input_file} --output_path ${corpus_processed}
 
 
 # The contents of
 # ./train_evaluate.sh $corpus_processed
-props="w+m"
+props="w+l+t+m+n"
 model_path=${corpus_processed}_${props}
 model_full_path=${model_path}.vec
 

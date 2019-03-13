@@ -51,7 +51,8 @@ def preprocess(input_path, output_path, min_ngram_len=3, max_ngram_len=6):
         while line.strip() != '':
             conll_lines = []
             while line.strip() != '':
-                conll_lines.append(line)
+                if line[0] != '#':
+                    conll_lines.append(line)
                 line = rf.readline()
             if not conll_lines:
                 line = rf.readline()
