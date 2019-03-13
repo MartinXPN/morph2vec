@@ -1,4 +1,6 @@
+import json
 import re
+from typing import Iterable, Dict, Tuple
 
 import fire as fire
 from nltk import everygrams
@@ -6,33 +8,23 @@ from nltk import everygrams
 SPECIAL_CHAR = '~'
 
 
-class Token:
-    def __init__(self, conll_line, min_ngram_len, max_ngram_len):
-        parts = conll_line.split('\t')
-        self.index = int(parts[0])
-        self.word = parts[1].replace(SPECIAL_CHAR, '-')
-        self.lemma = parts[2].replace(SPECIAL_CHAR, '-')
-        self.pos = parts[3]
-        # self.xpos = parts[4]
-        self.morphological_tags = parts[5].split('|')
-        self.morphemes = []
-        self.ngrams = [''.join(g) for g in everygrams(self.word, min_len=min_ngram_len, max_len=max_ngram_len)]
-        # self.dep_root_index = int(parts[6])
-        # self.dep_type = parts[7]
+def parse(conll_lines: Iterable[str], word2morphemes: Dict[str, Tuple[str]], min_ngram_len: int, max_ngram_len: int):
 
+    class Token:
+        def __init__(self, conll_line: str):
+            parts = conll_line.split('\t')
+            self.index = int(parts[0])
+            self.word = parts[1].replace(SPECIAL_CHAR, '-')
+            self.lemma = parts[2].replace(SPECIAL_CHAR, '-')
+            self.pos = parts[3]
+            # self.xpos = parts[4]
+            self.morphological_tags = parts[5].split('|')
+            self.morphemes = word2morphemes[self.lemma] if self.lemma in word2morphemes else tuple()
+            self.ngrams = [''.join(g) for g in everygrams(self.word, min_len=min_ngram_len, max_len=max_ngram_len)]
+            # self.dep_root_index = int(parts[6])
+            # self.dep_type = parts[7]
 
-class Sentence:
-    def __init__(self, conll_lines, min_ngram_len, max_ngram_len):
-        self.tokens = [Token(line, min_ngram_len, max_ngram_len)
-                       for line in conll_lines
-                       if line.split('\t')[0].isdigit()]
-
-
-def preprocess(input_path, output_path, min_ngram_len=3, max_ngram_len=6):
-    print('Input path:', input_path)
-    print('Output path:', output_path)
-
-    def token_format(t):
+    def token_format(t: Token):
         res = SPECIAL_CHAR.join([
             'w:' + t.word,
             'l:' + t.lemma,
@@ -46,6 +38,15 @@ def preprocess(input_path, output_path, min_ngram_len=3, max_ngram_len=6):
             res = res[:-1]
         return res
 
+    tokens = [Token(line) for line in conll_lines if line.split('\t')[0].isdigit()]
+    return ' '.join([token_format(t) for t in tokens]) + '\n'
+
+
+def preprocess(input_path: str, output_path: str, word2morphemes_path: str = None,
+               min_ngram_len: int = 3, max_ngram_len: int = 6):
+
+    word2morphemes = json.load(word2morphemes_path) if word2morphemes_path else dict()
+
     with open(input_path, 'r', encoding='utf-8') as rf, open(output_path, 'w', encoding='utf-8') as wf:
         line = rf.readline()
         while line.strip() != '':
@@ -57,9 +58,9 @@ def preprocess(input_path, output_path, min_ngram_len=3, max_ngram_len=6):
             if not conll_lines:
                 line = rf.readline()
                 continue
-            sentence = Sentence(conll_lines, min_ngram_len, max_ngram_len)
-            tokens = [t for t in sentence.tokens]
-            wf.write(' '.join([token_format(t) for t in tokens]) + '\n')
+
+            wf.write(parse(conll_lines=conll_lines, word2morphemes=word2morphemes,
+                           min_ngram_len=min_ngram_len, max_ngram_len=max_ngram_len))
             line = rf.readline()
 
 

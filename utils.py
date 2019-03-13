@@ -1,4 +1,4 @@
-def get_morph_parts_from_wlm_str(wlm_str):
+def get_morph_parts_from_wlm_str(wlm_str: str):
     return [p for p in wlm_str.split('~') if p.startswith('m:')]
 
 
