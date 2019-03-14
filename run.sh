@@ -1,7 +1,7 @@
 #!/bin/bash
 
 script_dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-input_file_url="https://raw.githubusercontent.com/UniversalDependencies/UD_Armenian-ArmTDP/master/hy_armtdp-ud-train.conllu"
+input_file_url="https://raw.githubusercontent.com/UniversalDependencies/UD_Russian-SynTagRus/master/ru_syntagrus-ud-train.conllu"
 input_file=${script_dir}/${input_file_url##*/}
 
 if [ ! -f ${input_file} ]
