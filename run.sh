@@ -13,7 +13,7 @@ fi
 # The contents of
 # ./preprocess_train_evaluate.sh $input_file
 corpus_processed=${input_file}_processed
-python preprocess.py --input_path ${input_file} --output_path ${corpus_processed}
+python preprocess.py --input_path ${input_file} --output_path ${corpus_processed} # --word2morphemes_model_path w2m/model.hdf5 --word2morphemes_processor_path w2m/processor.pkl
 
 
 # The contents of

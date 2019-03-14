@@ -49,8 +49,8 @@ def parse(conll_lines: Iterable[str],
     if word2morphemes:
         morphemes = word2morphemes.predict(inputs=[Sample(word=tok.lemma, segments=tuple()) for tok in tokens],
                                            batch_size=1)
-        for m, tok in zip(morphemes, tokens):
-            tok.morphemes = m.segments
+        for morph, tok in zip(morphemes, tokens):
+            tok.morphemes = morph.segments
     return ' '.join([token_format(t) for t in tokens]) + '\n'
 
 
@@ -58,6 +58,8 @@ def preprocess(input_path: str, output_path: str,
                word2morphemes_model_path: str = None, word2morphemes_processor_path: str = None,
                min_ngram_len: int = 3, max_ngram_len: int = 6):
 
+    print('Processing the file:', input_path)
+    print('To save the results in:', output_path)
     word2morphemes = {} if word2morphemes_model_path is None or word2morphemes_processor_path is None \
         else Word2Morph(model_path=word2morphemes_model_path, processor_path=word2morphemes_processor_path)
 
