@@ -3,7 +3,7 @@ from typing import Iterable, List, Tuple, Optional
 
 import fire as fire
 from nltk import everygrams
-from word2morph.entities.sample import Sample
+from tqdm import tqdm
 from word2morph.predict import Word2Morph
 
 SPECIAL_CHAR = '~'
@@ -22,7 +22,7 @@ def parse(conll_lines: Iterable[str],
             self.pos: str = parts[3]
             # self.xpos: str = parts[4]
             self.morphological_tags: List[str] = parts[5].split('|')
-            self.morphemes: Tuple[str] = tuple()
+            self.morphemes: Tuple[str] = word2morphemes[self.lemma].segments if word2morphemes else tuple()
             self.ngrams: List[str] = [''.join(g) for g in everygrams(self.word,
                                                                      min_len=min_ngram_len,
                                                                      max_len=max_ngram_len)]
@@ -44,13 +44,6 @@ def parse(conll_lines: Iterable[str],
         return res
 
     tokens = [Token(line) for line in conll_lines if line.split('\t')[0].isdigit()]
-
-    ''' Add morpheme information (lemma2morph) '''
-    if word2morphemes:
-        morphemes = word2morphemes.predict(inputs=[Sample(word=tok.lemma, segments=tuple()) for tok in tokens],
-                                           batch_size=1)
-        for morph, tok in zip(morphemes, tokens):
-            tok.morphemes = morph.segments
     return ' '.join([token_format(t) for t in tokens]) + '\n'
 
 
@@ -63,21 +56,27 @@ def preprocess(input_path: str, output_path: str,
     word2morphemes = {} if word2morphemes_model_path is None or word2morphemes_processor_path is None \
         else Word2Morph(model_path=word2morphemes_model_path, processor_path=word2morphemes_processor_path)
 
-    with open(input_path, 'r', encoding='utf-8') as rf, open(output_path, 'w', encoding='utf-8') as wf:
-        line = rf.readline()
+    sentences = []
+    with open(input_path, 'r', encoding='utf-8') as f:
+        line = f.readline()
         while line.strip() != '':
             conll_lines = []
             while line.strip() != '':
                 if line[0] != '#':
                     conll_lines.append(line)
-                line = rf.readline()
+                line = f.readline()
             if not conll_lines:
-                line = rf.readline()
+                line = f.readline()
                 continue
 
-            wf.write(parse(conll_lines=conll_lines, word2morphemes=word2morphemes,
-                           min_ngram_len=min_ngram_len, max_ngram_len=max_ngram_len))
-            line = rf.readline()
+            sentences.append(conll_lines)
+            line = f.readline()
+
+    print('Processing', len(sentences), 'sentences...', flush=True)
+    with open(output_path, 'w', encoding='utf-8') as f:
+        for sentence in tqdm(sentences):
+            f.write(parse(conll_lines=sentence, word2morphemes=word2morphemes,
+                          min_ngram_len=min_ngram_len, max_ngram_len=max_ngram_len))
 
 
 if __name__ == "__main__":
