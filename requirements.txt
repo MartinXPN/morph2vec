@@ -1,3 +1,4 @@
+tqdm
 fire==0.1.3
 nltk==3.4
 singledispatch==3.4.0.3
