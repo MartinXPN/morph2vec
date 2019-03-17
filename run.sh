@@ -14,7 +14,7 @@ fi
 # ./preprocess_train_evaluate.sh $input_file
 corpus_processed=${input_file}_processed
 if [ ! -f ${corpus_processed} ]
-then python preprocess.py --input_path ${input_file} --output_path ${corpus_processed} # --word2morphemes_model_path w2m/model.hdf5 --word2morphemes_processor_path w2m/processor.pkl
+then python -m morph2vec.data.preprocess --input_path ${input_file} --output_path ${corpus_processed} # --word2morphemes_model_path w2m/model.hdf5 --word2morphemes_processor_path w2m/processor.pkl
 fi
 
 
