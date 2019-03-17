@@ -3,5 +3,5 @@ fire==0.1.3
 nltk==3.4
 singledispatch==3.4.0.3
 six==1.12.0
-git+https://github.com/MartinXPN/word2morph
-git+https://github.com/MartinXPN/fastText
+git+https://github.com/MartinXPN/word2morph@master#egg=word2morph
+git+https://github.com/MartinXPN/fastText@master#egg=fastText
