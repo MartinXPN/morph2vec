@@ -20,14 +20,21 @@ morphemes from a given lemma
 * n-grams are added during the preprocessing step (not fasttext default one)
 
 ## Instructions
-* To prepare the data for training a fastText model:
+* To download sample data in `.conllu` format:
 ```commandline
-python -m morph2vec.data.preprocess --input_path ${input_file} --output_path ${corpus_processed} # --word2morphemes_model_path w2m/model.hdf5 --word2morphemes_processor_path w2m/processor.pkl
+wget https://raw.githubusercontent.com/UniversalDependencies/UD_Armenian-ArmTDP/master/hy_armtdp-ud-train.conllu -P datasets
+wget https://raw.githubusercontent.com/UniversalDependencies/UD_Russian-SynTagRus/master/ru_syntagrus-ud-train.conllu -P datasets
+```
+
+* To prepare the data for training a fastText model (the last two arguments are optional):
+```commandline
+python -m morph2vec.data.preprocess --input_path datasets/ru_syntagrus-ud-train.conllu --output_path datasets/ru_processed_wltmn.txt 
+                                    --word2morphemes_model_path w2m/model.hdf5 --word2morphemes_processor_path w2m/processor.pkl
 ```
 
 * To train a fastText model:
 ```commandline
 python -m morph2vec.train 
-        train_unsupervised --input ru_syntagrus-ud-train.conllu_processed --model skipgram --props w+l+t+m+n --lr 0.025 --dim 200 --ws 2 --epoch 5 --minCount 5 --minCountLabel 0 --minn 3 --maxn 6 --neg 5 --wordNgrams 1 --loss ns --bucket 2000000 --thread 1 --lrUpdateRate 100 --t 1e-3 --label __label__ --verbose 2 --pretrainedVectors ""
-        save_model --path ru_syntagrus_w+l+t+m+n.bin
+        train_unsupervised --input datasets/datasets/ru_processed_wltmn.txt --model skipgram --props w+l+t+m+n --lr 0.025 --dim 200 --ws 2 --epoch 5 --minCount 5 --minCountLabel 0 --minn 3 --maxn 6 --neg 5 --wordNgrams 1 --loss ns --bucket 2000000 --thread 1 --lrUpdateRate 100 --t 1e-3 --label __label__ --verbose 2 --pretrainedVectors ""
+        save_model --path ru_wltmn.bin
 ```
