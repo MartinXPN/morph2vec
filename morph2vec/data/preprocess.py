@@ -3,7 +3,7 @@ from typing import Iterable, Optional
 
 import fire as fire
 from tqdm import tqdm
-from word2morph.predict import Word2Morph
+from word2morph import Word2Morph
 
 from morph2vec.entities.tokens import Token, TokenFactory
 
@@ -35,14 +35,12 @@ def parse(conll_lines: Iterable[str],
     return ' '.join([token_format(t) for t in tokens])
 
 
-def preprocess(input_path: str, output_path: str,
-               word2morphemes_model_path: str = None, word2morphemes_processor_path: str = None,
+def preprocess(input_path: str, output_path: str, word2morph_path: str = None,
                min_ngram_len: int = 3, max_ngram_len: int = 6):
 
     print('Processing the file:', input_path)
     print('To save the results in:', output_path)
-    word2morphemes = {} if word2morphemes_model_path is None or word2morphemes_processor_path is None \
-        else Word2Morph(model_path=word2morphemes_model_path, processor_path=word2morphemes_processor_path)
+    word2morphemes = {} if word2morph_path is None else Word2Morph.load_model(word2morph_path)
 
     sentences = []
     with open(input_path, 'r', encoding='utf-8') as f:

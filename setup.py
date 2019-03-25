@@ -5,6 +5,8 @@ from shutil import rmtree
 
 from setuptools import find_packages, setup, Command
 
+from morph2vec import __version__
+
 # Package meta-data.
 NAME = 'morph2vec'
 DESCRIPTION = 'Python package for learning vector representations of words with morphemes'
@@ -12,7 +14,7 @@ URL = 'https://github.com/MartinXPN/morph2vec'
 EMAIL = 'mirakyanmartin@gmail.com'
 AUTHOR = 'Martin Mirakyan'
 REQUIRES_PYTHON = '>=3.6.0'
-VERSION = '1.0.1'
+VERSION = __version__
 
 # What packages are required for this module to be executed?
 with open('requirements.txt') as f:
