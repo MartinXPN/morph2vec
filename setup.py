@@ -17,9 +17,11 @@ REQUIRES_PYTHON = '>=3.6.0'
 VERSION = __version__
 
 # What packages are required for this module to be executed?
-with open('requirements.txt') as f:
-    install_requires = [line for line in f.readlines() if not line.startswith('git+')]
-REQUIRED = install_requires
+REQUIRED = [
+    'tqdm>=4.31.1',
+    'fire>=0.1.3',
+    'nltk>=3.4',
+]
 
 # What packages are optional?
 EXTRAS = {
