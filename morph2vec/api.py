@@ -1,6 +1,4 @@
-import urllib.request
-from pathlib import Path
-from typing import Tuple
+from typing import Tuple, overload
 
 from fastText import load_model
 # noinspection PyProtectedMember
@@ -8,7 +6,7 @@ from fastText.FastText import _FastText as FastText
 
 from morph2vec.data.preprocess import token_format
 from morph2vec.entities.tokens import Token
-from morph2vec.util.utils import DownloadProgressBar
+from morph2vec.util.utils import download
 
 BASE_URL = 'https://github.com/MartinXPN/morph2vec/releases/download'
 
@@ -29,23 +27,34 @@ class Morph2Vec(object):
         text_input = token_format(token)
         return self.model.get_word_vector(word=text_input)
 
-    @staticmethod
-    def load_model(path: str = None, url: str = None, locale: str = None, version: str = None) -> 'Morph2Vec':
+    @classmethod
+    @overload
+    def load_model(cls, path: str) -> 'Morph2Vec':
+        ...
+
+    @classmethod
+    @overload
+    def load_model(cls, url: str, path: str) -> 'Morph2Vec':
+        ...
+
+    @classmethod
+    @overload
+    def load_model(cls, locale: str, version: str = None) -> 'Morph2Vec':
+        ...
+
+    @classmethod
+    def load_model(cls, path: str = None, url: str = None, locale: str = None, version: str = None) -> 'Morph2Vec':
         from morph2vec import __version__
 
         if locale:
             version = version or __version__
-            url = '{BASE_URL}/v{version}/{locale}.bin'.format(BASE_URL=BASE_URL, version=version, locale=locale)
-            path = path or 'logs/{locale}-{version}.bin'.format(locale=locale, version=version)
+            url = f'{BASE_URL}/v{version}/{locale}.bin'
+            path = path or f'logs/{locale}-{version}.bin'
 
         if url and path:
-            if not Path(path).exists():
-                with DownloadProgressBar(unit='B', unit_scale=True, miniters=1, desc=url.split('/')[-1]) as t:
-                    urllib.request.urlretrieve(url=url, filename=path, reporthook=t.update_to)
-            else:
-                print('Model already exists. Loading an existing file...')
+            download(url, path, exists_ok=True)
         elif url:
             raise ValueError('Both URL and save path needs to be specified!')
 
         model = load_model(path=path)
-        return Morph2Vec(model)
+        return cls(model)
