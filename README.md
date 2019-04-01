@@ -28,12 +28,12 @@ wget https://raw.githubusercontent.com/UniversalDependencies/UD_Russian-SynTagRu
 
 * To prepare the data for training a fastText model (the last two arguments are optional):
 ```commandline
-python -m morph2vec.data.preprocess --input_path datasets/ru_syntagrus-ud-train.conllu --output_path datasets/ru_processed_wltmn.txt  --word2morphemes_path w2m/model.hdf5
+PYTHONHASHSEED=0 python -m morph2vec.data.preprocess --input_path datasets/ru_syntagrus-ud-train.conllu --output_path datasets/ru_processed_wltmn.txt  --word2morphemes_path w2m/model.hdf5
 ```
 
 * To train a fastText model:
 ```commandline
-python -m morph2vec.train 
+PYTHONHASHSEED=0 python -m morph2vec.train 
         train_unsupervised --input datasets/ru_processed_wltmn.txt --model skipgram --props w+l+t+m+n --lr 0.025 --dim 200 --ws 2 --epoch 5 --minCount 5 --minCountLabel 0 --minn 3 --maxn 6 --neg 5 --wordNgrams 1 --loss ns --bucket 2000000 --thread 1 --lrUpdateRate 100 --t 1e-3 --label __label__ --verbose 2 --pretrainedVectors ""
         save_model --path logs/ru.bin
 ```
