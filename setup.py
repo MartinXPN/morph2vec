@@ -21,6 +21,8 @@ REQUIRED = [
     'tqdm>=4.31.1',
     'fire>=0.1.3',
     'nltk>=3.4',
+    'scipy>=1.2.1',
+    'numpy>=1.16.1',
 ]
 
 # What packages are optional?
@@ -110,6 +112,7 @@ setup(
     # },
     install_requires=REQUIRED,
     dependency_links=[
+        'https://github.com/MartinXPN/sentence2tags/tarball/master#egg=package-1.0',
         'https://github.com/MartinXPN/word2morph/tarball/master#egg=package-1.0',
         'https://github.com/MartinXPN/fastText/tarball/master#egg=package-1.0',
     ],

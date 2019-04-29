@@ -28,7 +28,10 @@ wget https://raw.githubusercontent.com/UniversalDependencies/UD_Russian-SynTagRu
 
 * To prepare the data for training a fastText model (the last two arguments are optional):
 ```commandline
-PYTHONHASHSEED=0 python -m morph2vec.data.preprocess --input_path datasets/ru_syntagrus-ud-train.conllu --output_path datasets/ru_processed_wltmn.txt  --word2morphemes_path w2m/model.hdf5
+# Preprocess the evaluation data (if needed)
+PYTHONHASHSEED=0 python -m morph2vec.data preprocess_eval --input_path datasets/eval-train.txt --output_path datasets/eval-train-processed.txt --locale ru
+# Preprocess the conllu corpus
+PYTHONHASHSEED=0 python -m morph2vec.data.preprocess preprocess_conllu --input_path datasets/ru_syntagrus-ud-train.conllu --output_path datasets/ru_processed_wltmn.txt  --locale ru
 ```
 
 * To train a fastText model:
@@ -36,4 +39,11 @@ PYTHONHASHSEED=0 python -m morph2vec.data.preprocess --input_path datasets/ru_sy
 PYTHONHASHSEED=0 python -m morph2vec.train 
         train_unsupervised --input datasets/ru_processed_wltmn.txt --model skipgram --props w+l+t+m+n --lr 0.025 --dim 200 --ws 2 --epoch 5 --minCount 5 --minCountLabel 0 --minn 3 --maxn 6 --neg 5 --wordNgrams 1 --loss ns --bucket 2000000 --thread 1 --lrUpdateRate 100 --t 1e-3 --label __label__ --verbose 2 --pretrainedVectors ""
         save_model --path logs/ru.bin
+```
+
+* To do a hyperparameter search:
+```commandline
+PYTHONHASHSEED=0 python -m morph2vec.hyperparametersearch
+        --eval_train_path datasets/eval-train-processed.txt --eval_test_path datasets/eval-test-processed.txt
+        search_hyperparameters --nb_trials 500 --input_path datasets/ru_processed_wltmn.txt --props "w+l+t+m+n"
 ```
