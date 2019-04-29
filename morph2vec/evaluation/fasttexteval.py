@@ -6,6 +6,8 @@ from fastText import load_model
 from scipy import stats
 import os
 
+from tqdm import tqdm
+
 
 def similarity(v1: np.ndarray, v2: np.ndarray):
     n1 = np.linalg.norm(v1)
@@ -20,20 +22,27 @@ def evaluate(model, word_pairs: List[Tuple[str, str]], gold_similarity: List[flo
         s = similarity(v1, v2)
         predicted_sim.append(s)
 
+    assert len(predicted_sim) == len(gold_similarity)
     # The inspector thinks that stats.spearmanr takes integer arguments instead of lists
     # noinspection PyTypeChecker
     corr = stats.spearmanr(predicted_sim, gold_similarity)
     return corr[0]
 
 
+def load_eval_data(path: str):
+    word_pairs: List[Tuple[str, str]] = []
+    gold_similarity: List[float] = []
+    with open(path, 'r', encoding='utf-8') as f:
+        for line in tqdm(f.readlines()):
+            w1, w2, sim = line.replace(',', ' ').split()
+            word_pairs.append((w1, w2))
+            gold_similarity.append(sim)
+
+    return word_pairs, gold_similarity
+
+
 def main(model_path: str, data_path: str):
-    print('Loading the data...', flush=True)
-    word_pairs = []
-    gold_similarity = []
-    with open(data_path, 'r', encoding='utf-8') as f:
-        w1, w2, sim = f.readline().replace(',', ' ').split()
-        word_pairs.append((w1, w2))
-        gold_similarity.append(sim)
+    word_pairs, gold_similarity = load_eval_data(path=data_path)
 
     print('Loading fasttext model...', end=' ', flush=True)
     model = load_model(model_path)
