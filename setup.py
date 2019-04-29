@@ -112,6 +112,7 @@ setup(
     # },
     install_requires=REQUIRED,
     dependency_links=[
+        'https://github.com/MartinXPN/sentence2tags/tarball/master#egg=package-1.0',
         'https://github.com/MartinXPN/word2morph/tarball/master#egg=package-1.0',
         'https://github.com/MartinXPN/fastText/tarball/master#egg=package-1.0',
     ],

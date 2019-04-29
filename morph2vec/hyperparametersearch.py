@@ -28,7 +28,7 @@ class HyperparameterSearchGym(object):
         self.test_word_pairs, self.test_similarity = load_eval_data(eval_test_path)
 
         tunables = [
-            ('lr', HyperParameter(ParamTypes.FLOAT, [0.0001, 0.8])),
+            ('lr', HyperParameter(ParamTypes.FLOAT, [0.001, 0.8])),
             ('dim', HyperParameter(ParamTypes.INT, [50, 350])),
             ('ws', HyperParameter(ParamTypes.INT, [3, 11])),
             ('epoch', HyperParameter(ParamTypes.INT, [3, 11])),

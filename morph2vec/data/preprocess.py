@@ -2,6 +2,7 @@ import re
 from typing import Iterable, Optional
 
 import fire as fire
+from sentence2tags import Sentence2Tags
 from tqdm import tqdm
 from word2morph import Word2Morph
 
@@ -35,12 +36,12 @@ def parse(conll_lines: Iterable[str],
     return ' '.join([token_format(t) for t in tokens])
 
 
-def preprocess(input_path: str, output_path: str, word2morph_path: str = None,
-               min_ngram_len: int = 3, max_ngram_len: int = 6):
+def preprocess_conllu(input_path: str, output_path: str, locale: str = None,
+                      min_ngram_len: int = 3, max_ngram_len: int = 6):
 
     print('Processing the file:', input_path)
     print('To save the results in:', output_path)
-    word2morphemes = {} if word2morph_path is None else Word2Morph.load_model(word2morph_path)
+    word2morphemes = {} if locale is None else Word2Morph.load_model(locale=locale)
 
     sentences = []
     with open(input_path, 'r', encoding='utf-8') as f:
@@ -66,5 +67,31 @@ def preprocess(input_path: str, output_path: str, word2morph_path: str = None,
             f.write(parsed_sentence + '\n')
 
 
+def parse_eval(w1, w2, sim,
+               min_ngram_len: int, max_ngram_len: int,
+               word2morphemes: Optional[Word2Morph] = None,
+               sentence2tags: Optional[Sentence2Tags] = None):
+    get_token = TokenFactory(special_char=SPECIAL_CHAR, word2morphemes=word2morphemes, sentence2tags=sentence2tags,
+                             min_ngram_len=min_ngram_len, max_ngram_len=max_ngram_len)
+    w1_token = get_token.from_word(w1)
+    w2_token = get_token.from_word(w2)
+    return token_format(w1_token) + ' ' + token_format(w2_token) + ' ' + str(sim)
+
+
+def preprocess_eval(input_path: str, output_path: str, locale: str,
+                    min_ngram_len: int = 3, max_ngram_len: int = 6):
+    print('Processing the file:', input_path)
+    print('To save the results in:', output_path)
+    word2morphemes = Word2Morph.load_model(locale=locale)
+    sentence2tags = Sentence2Tags.load_model(locale=locale)
+
+    with open(output_path, 'w', encoding='utf-8') as outf, open(input_path, 'r', encoding='utf-8') as inf:
+        for line in tqdm(inf):
+            w1, w2, sim = line.replace(',', ' ').split()
+            res = parse_eval(w1, w2, sim, min_ngram_len=min_ngram_len, max_ngram_len=max_ngram_len,
+                             word2morphemes=word2morphemes, sentence2tags=sentence2tags)
+            outf.write(res + '\n')
+
+
 if __name__ == "__main__":
-    fire.Fire(preprocess)
+    fire.Fire()
