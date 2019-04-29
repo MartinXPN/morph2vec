@@ -21,6 +21,8 @@ REQUIRED = [
     'tqdm>=4.31.1',
     'fire>=0.1.3',
     'nltk>=3.4',
+    'scipy>=1.2.1',
+    'numpy>=1.16.1',
 ]
 
 # What packages are optional?
