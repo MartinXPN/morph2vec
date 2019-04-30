@@ -28,8 +28,10 @@ wget https://raw.githubusercontent.com/UniversalDependencies/UD_Russian-SynTagRu
 
 * To prepare the data for training a fastText model (the last two arguments are optional):
 ```commandline
-# Preprocess the evaluation data (if needed)
+# Preprocess the evaluation data (*optional)
 PYTHONHASHSEED=0 python -m morph2vec.data preprocess_eval --input_path datasets/eval-train.txt --output_path datasets/eval-train-processed.txt --locale ru
+PYTHONHASHSEED=0 python -m morph2vec.data preprocess_eval --input_path datasets/eval-test.txt --output_path datasets/eval-test-processed.txt --locale ru
+
 # Preprocess the conllu corpus
 PYTHONHASHSEED=0 python -m morph2vec.data.preprocess preprocess_conllu --input_path datasets/ru_syntagrus-ud-train.conllu --output_path datasets/ru_processed_wltmn.txt  --locale ru
 ```

@@ -48,7 +48,7 @@ class TokenFactory(object):
         tree = sentence_to_tree(sentence=[word])
         word_token = self.sentence2tags[tree].tokens[1]
 
-        lemma = word_token.fields['lemma']
+        lemma = word_token.fields['lemma'].lower()
         pos_tag = word_token.fields['upostag']
         morph_tags = word_token.fields['feats']
 
