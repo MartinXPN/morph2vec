@@ -1,8 +1,7 @@
 import re
-from typing import Iterable, Optional
 
 import fire as fire
-from sentence2tags import Sentence2Tags
+from sentence2tags import Sentence2Tags, tree_to_conllu_lines, sentence_to_tree
 from tqdm import tqdm
 from word2morph import Word2Morph
 
@@ -24,16 +23,6 @@ def token_format(t: Token):
     if res[-1] == SPECIAL_CHAR:
         res = res[:-1]
     return res
-
-
-def parse(conll_lines: Iterable[str],
-          min_ngram_len: int, max_ngram_len: int,
-          word2morphemes: Optional[Word2Morph] = None):
-
-    get_token = TokenFactory(special_char=SPECIAL_CHAR, word2morphemes=word2morphemes,
-                             min_ngram_len=min_ngram_len, max_ngram_len=max_ngram_len)
-    tokens = [get_token.from_conll_line(line) for line in conll_lines]
-    return ' '.join([token_format(t) for t in tokens])
 
 
 def preprocess_conllu(input_path: str, output_path: str, locale: str = None,
@@ -60,22 +49,35 @@ def preprocess_conllu(input_path: str, output_path: str, locale: str = None,
             line = f.readline()
 
     print('Processing', len(sentences), 'sentences...', flush=True)
+    get_token = TokenFactory(special_char=SPECIAL_CHAR, word2morphemes=word2morphemes,
+                             min_ngram_len=min_ngram_len, max_ngram_len=max_ngram_len)
+
     with open(output_path, 'w', encoding='utf-8') as f:
         for sentence in tqdm(sentences):
-            parsed_sentence = parse(conll_lines=sentence, word2morphemes=word2morphemes,
-                                    min_ngram_len=min_ngram_len, max_ngram_len=max_ngram_len)
+            tokens = [get_token.from_conll_line(line) for line in sentence]
+            parsed_sentence = ' '.join([token_format(t) for t in tokens])
             f.write(parsed_sentence + '\n')
 
 
-def parse_eval(w1, w2, sim,
-               min_ngram_len: int, max_ngram_len: int,
-               word2morphemes: Optional[Word2Morph] = None,
-               sentence2tags: Optional[Sentence2Tags] = None):
-    get_token = TokenFactory(special_char=SPECIAL_CHAR, word2morphemes=word2morphemes, sentence2tags=sentence2tags,
+def preprocess_wiki(input_path: str, output_path: str, locale: str,
+                    min_ngram_len: int = 3, max_ngram_len: int = 6):
+    with open(input_path, 'r', encoding='utf-8') as f:
+        sentences = [l.strip() for l in tqdm(f)]
+
+    word2morphemes = Word2Morph.load_model(locale=locale)
+    sentence2tags = Sentence2Tags.load_model(locale=locale)
+    get_token = TokenFactory(special_char=SPECIAL_CHAR, word2morphemes=word2morphemes,
                              min_ngram_len=min_ngram_len, max_ngram_len=max_ngram_len)
-    w1_token = get_token.from_word(w1)
-    w2_token = get_token.from_word(w2)
-    return token_format(w1_token) + ' ' + token_format(w2_token) + ' ' + str(sim)
+
+    with open(output_path, 'w', encoding='utf-8') as f:
+        for sentence in tqdm(sentences):
+            input_tree = sentence_to_tree(sentence.split(' '))
+            res_tree = sentence2tags[input_tree]
+            conllu_lines = tree_to_conllu_lines(res_tree)
+
+            tokens = [get_token.from_conll_line(line) for line in conllu_lines]
+            parsed_sentence = ' '.join([token_format(t) for t in tokens])
+            f.write(parsed_sentence + '\n')
 
 
 def preprocess_eval(input_path: str, output_path: str, locale: str,
@@ -84,13 +86,18 @@ def preprocess_eval(input_path: str, output_path: str, locale: str,
     print('To save the results in:', output_path)
     word2morphemes = Word2Morph.load_model(locale=locale)
     sentence2tags = Sentence2Tags.load_model(locale=locale)
+    get_token = TokenFactory(special_char=SPECIAL_CHAR,
+                             word2morphemes=word2morphemes, sentence2tags=sentence2tags,
+                             min_ngram_len=min_ngram_len, max_ngram_len=max_ngram_len)
 
     with open(output_path, 'w', encoding='utf-8') as outf, open(input_path, 'r', encoding='utf-8') as inf:
         for line in tqdm(inf):
             w1, w2, sim = line.replace(',', ' ').split()
-            res = parse_eval(w1, w2, sim, min_ngram_len=min_ngram_len, max_ngram_len=max_ngram_len,
-                             word2morphemes=word2morphemes, sentence2tags=sentence2tags)
-            outf.write(res + '\n')
+            w1_token = get_token.from_word(w1)
+            w2_token = get_token.from_word(w2)
+
+            outf.write(token_format(w1_token) + ' ' +
+                       token_format(w2_token) + ' ' + str(sim) + '\n')
 
 
 if __name__ == "__main__":
