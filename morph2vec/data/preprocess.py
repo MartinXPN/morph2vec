@@ -97,8 +97,7 @@ def preprocess_wiki(input_path: str, output_path: str, locale: str,
 
     with open(output_path, 'w', encoding='utf-8') as f:
         for i in tqdm(range(0, len(sentences), chunk_size)):
-            processed = process(sentences[i: i + chunk_size])
-            for p in processed:
+            for p in process(sentences[i: i + chunk_size]):
                 f.write(p + '\n')
 
 
