@@ -33,12 +33,7 @@ class TokenFactory(object):
         parts = line.split('\t')
         word = parts[1].replace(self.special_char, '-')
         lemma = parts[2].replace(self.special_char, '-').lower()
-
-        if lemma in self.cache:
-            morphemes = self.cache[lemma]
-        else:
-            morphemes = self.cache[lemma] = self.word2morphemes[lemma].segments \
-                if self.word2morphemes and lemma else tuple()
+        morphemes = self.word2morphemes[lemma].segments if self.word2morphemes and lemma else tuple()
 
         return Token(index=int(parts[0]),
                      word=word,
