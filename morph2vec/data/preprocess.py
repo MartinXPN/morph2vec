@@ -63,7 +63,7 @@ def preprocess_conllu(input_path: str, output_path: str, locale: str = None,
 
 
 def preprocess_wiki(input_path: str, output_path: str, locale: str,
-                    min_ngram_len: int = 3, max_ngram_len: int = 6,
+                    min_ngram_len: int = 3, max_ngram_len: int = 6, max_sentence_len: int = 100,
                     chunk_size: int = 10, batch_size: int = 32):
     """
     Preprocess wiki. As the file is too large (5+GB) there are some optimisations made here.
@@ -88,7 +88,7 @@ def preprocess_wiki(input_path: str, output_path: str, locale: str,
     def process(chunk_sentences: List[str]):
         """ Process chunk os sentences returning result in the needed format """
         ''' Sentence to tags '''
-        input_trees = [sentence_to_tree(s.split(' ')) for s in chunk_sentences]
+        input_trees = [sentence_to_tree(s.split(' ')) for s in chunk_sentences if len(s.split(' ')) < max_sentence_len]
         res_trees = sentence2tags.predict(input_trees)
 
         ''' Parse all the sentences (trees) to CONLL-U format '''
