@@ -49,7 +49,7 @@ PYTHONHASHSEED=0 python -m morph2vec.data.preprocess preprocess_wiki datasets/ru
 * To train a fastText model:
 ```bash
 PYTHONHASHSEED=0 python -m morph2vec.train 
-        train_unsupervised --input datasets/ru_processed_wltmn.txt --model skipgram --props w+l+t+m+n --lr 0.025 --dim 200 --ws 2 --epoch 5 --minCount 5 --minCountLabel 0 --minn 3 --maxn 6 --neg 5 --wordNgrams 1 --loss ns --bucket 2000000 --thread 1 --lrUpdateRate 100 --t 1e-3 --label __label__ --verbose 2 --pretrainedVectors ""
+        train_unsupervised --input /mnt/2tb/ru-wiki.wltmn --model skipgram --props w+l+t+m+n --lr 0.05 --dim 300 --ws 5 --epoch 5 --minCount 5 --minCountLabel 0 --minn 3 --maxn 6 --neg 5 --wordNgrams 1 --loss ns --bucket 2000000 --thread 8 --lrUpdateRate 100 --t 1e-4 --label __label__ --verbose 2 --pretrainedVectors "" 
         save_model --path logs/ru.bin
 ```
 
