@@ -59,3 +59,8 @@ PYTHONHASHSEED=0 python -m morph2vec.hyperparametersearch
         --eval_train_path datasets/eval-train-processed.txt --eval_test_path datasets/eval-test-processed.txt
         search_hyperparameters --nb_trials 500 --input_path datasets/ru_processed_wltmn.txt --props "w+l+t+m+n"
 ```
+
+* To evaluate the model:
+```bash
+PYTHONHASHSEED=0 python -m morph2vec.evaluation.fasttexteval --model_path logs/ru.bin --data_path datasets/eval-test-processed.txt
+```
