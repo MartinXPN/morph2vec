@@ -21,30 +21,40 @@ morphemes from a given lemma
 
 ## Instructions
 * To download sample data in `.conllu` format:
-```commandline
+```bash
 wget https://raw.githubusercontent.com/UniversalDependencies/UD_Armenian-ArmTDP/master/hy_armtdp-ud-train.conllu -P datasets
 wget https://raw.githubusercontent.com/UniversalDependencies/UD_Russian-SynTagRus/master/ru_syntagrus-ud-train.conllu -P datasets
 ```
 
-* To prepare the data for training a fastText model (the last two arguments are optional):
-```commandline
-# Preprocess the evaluation data (*optional)
-PYTHONHASHSEED=0 python -m morph2vec.data preprocess_eval --input_path datasets/eval-train.txt --output_path datasets/eval-train-processed.txt --locale ru
-PYTHONHASHSEED=0 python -m morph2vec.data preprocess_eval --input_path datasets/eval-test.txt --output_path datasets/eval-test-processed.txt --locale ru
+* To download the preprocessed wiki corpus:
+```bash
+wget https://github.com/MartinXPN/morph2vec/releases/download/untagged-3ea19837200f87346920/ru-wiki-text.zip -P datasets
+unzip ru-wiki-text.zip
+```
+
+* The evaluation data can be obtained from [russe-evaluation](https://github.com/nlpub/russe-evaluation/blob/master/russe/evaluation/README.md) corpus
+* To prepare the data for training a fastText model:
+```bash
+# [Optional] Preprocess the evaluation data
+PYTHONHASHSEED=0 python -m morph2vec.data.preprocess preprocess_eval --input_path datasets/eval-train.txt --output_path datasets/eval-train-processed.txt --locale ru
+PYTHONHASHSEED=0 python -m morph2vec.data.preprocess preprocess_eval --input_path datasets/eval-test.txt --output_path datasets/eval-test-processed.txt --locale ru
 
 # Preprocess the conllu corpus
 PYTHONHASHSEED=0 python -m morph2vec.data.preprocess preprocess_conllu --input_path datasets/ru_syntagrus-ud-train.conllu --output_path datasets/ru_processed_wltmn.txt  --locale ru
+
+# Preprocess the wiki corpus
+PYTHONHASHSEED=0 python -m morph2vec.data.preprocess preprocess_wiki datasets/ru-wiki-text.txt --output_path datasets/ru-wiki.wltmn --locale ru
 ```
 
 * To train a fastText model:
-```commandline
+```bash
 PYTHONHASHSEED=0 python -m morph2vec.train 
         train_unsupervised --input datasets/ru_processed_wltmn.txt --model skipgram --props w+l+t+m+n --lr 0.025 --dim 200 --ws 2 --epoch 5 --minCount 5 --minCountLabel 0 --minn 3 --maxn 6 --neg 5 --wordNgrams 1 --loss ns --bucket 2000000 --thread 1 --lrUpdateRate 100 --t 1e-3 --label __label__ --verbose 2 --pretrainedVectors ""
         save_model --path logs/ru.bin
 ```
 
 * To do a hyperparameter search:
-```commandline
+```bash
 PYTHONHASHSEED=0 python -m morph2vec.hyperparametersearch
         --eval_train_path datasets/eval-train-processed.txt --eval_test_path datasets/eval-test-processed.txt
         search_hyperparameters --nb_trials 500 --input_path datasets/ru_processed_wltmn.txt --props "w+l+t+m+n"

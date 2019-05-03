@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Dict
 
 from nltk import everygrams
 from sentence2tags import Sentence2Tags
@@ -27,18 +27,21 @@ class TokenFactory(object):
         self.sentence2tags = sentence2tags
         self.min_ngram_len = min_ngram_len
         self.max_ngram_len = max_ngram_len
+        self.cache: Dict[str, Tuple[str, ...]] = {}
 
     def from_conll_line(self, line):
         parts = line.split('\t')
         word = parts[1].replace(self.special_char, '-')
-        lemma = parts[2].replace(self.special_char, '-')
+        lemma = parts[2].replace(self.special_char, '-').lower()
+        morphemes = self.word2morphemes[lemma].segments if self.word2morphemes and lemma else tuple()
+
         return Token(index=int(parts[0]),
                      word=word,
                      lemma=lemma,
                      pos=parts[3],
                      xpos=parts[4],
                      morphological_tags=tuple(parts[5].split('|')),
-                     morphemes=self.word2morphemes[lemma].segments if self.word2morphemes else tuple(),
+                     morphemes=morphemes,
                      ngrams=tuple([''.join(g) for g in everygrams(word,
                                                                   min_len=self.min_ngram_len,
                                                                   max_len=self.max_ngram_len)]),
