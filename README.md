@@ -46,7 +46,7 @@ PYTHONHASHSEED=0 python -m morph2vec.data.preprocess preprocess_conllu --input_p
 PYTHONHASHSEED=0 python -m morph2vec.data.preprocess preprocess_wiki datasets/ru-wiki-text.txt --output_path datasets/ru-wiki.wltmn --locale ru
 ```
 
-* To train a fastText model:
+* To train a fastText model (Training a model on half of the russian wiki takes ~4 hours on 4 core CPU):
 ```bash
 PYTHONHASHSEED=0 python -m morph2vec.train 
         train_unsupervised --input /mnt/2tb/ru-wiki.wltmn --model skipgram --props w+l+t+m+n --lr 0.05 --dim 300 --ws 5 --epoch 5 --minCount 5 --minCountLabel 0 --minn 3 --maxn 6 --neg 5 --wordNgrams 1 --loss ns --bucket 2000000 --thread 8 --lrUpdateRate 100 --t 1e-4 --label __label__ --verbose 2 --pretrainedVectors "" 
@@ -62,5 +62,6 @@ PYTHONHASHSEED=0 python -m morph2vec.hyperparametersearch
 
 * To evaluate the model:
 ```bash
-PYTHONHASHSEED=0 python -m morph2vec.evaluation.fasttexteval --model_path logs/ru.bin --data_path datasets/eval-test-processed.txt
+PYTHONHASHSEED=0 python -m morph2vec.evaluation.fasttexteval 
+        --model_path logs/ru.bin --data_path datasets/eval-test-processed.txt
 ```

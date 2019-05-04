@@ -19,6 +19,8 @@ def evaluate(model, word_pairs: List[Tuple[str, str]], gold_similarity: List[flo
     predicted_sim = []
     for word1, word2 in word_pairs:
         v1, v2 = model.get_word_vector(word1), model.get_word_vector(word2)
+        assert np.any(v1), f'{word1} word-vector cannot be zero'
+        assert np.any(v2), f'{word2} word-vector cannot be zero'
         s = similarity(v1, v2)
         predicted_sim.append(s)
 
@@ -50,7 +52,7 @@ def main(model_path: str, data_path: str):
 
     score = evaluate(model=model, word_pairs=word_pairs, gold_similarity=gold_similarity)
     dataset = os.path.basename(data_path)
-    print("{0:20s}: {1:2.0f}".format(dataset, score * 100))
+    print("Score for the dataset {0:20s}: {1:2.0f}".format(dataset, score * 100))
 
 
 if __name__ == '__main__':
