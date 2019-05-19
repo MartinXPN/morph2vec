@@ -14,6 +14,7 @@ setup(
         'tqdm>=4.31.1',
         'fire>=0.1.3',
         'nltk>=3.4',
+        'scikit-learn>=0.20.0',
         'scipy>=1.2.1',
         'numpy>=1.16.1',
         'sentence2tags @ git+https://www.github.com/MartinXPN/sentence2tags@master',
