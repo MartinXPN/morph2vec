@@ -28,7 +28,7 @@ wget https://raw.githubusercontent.com/UniversalDependencies/UD_Russian-SynTagRu
 
 * To download the preprocessed wiki corpus:
 ```bash
-wget https://github.com/MartinXPN/morph2vec/releases/download/untagged-3ea19837200f87346920/ru-wiki-text.zip -P datasets
+wget https://github.com/MartinXPN/morph2vec/releases/download/v0.2.0/ru-wiki-text.zip -P datasets
 unzip ru-wiki-text.zip
 ```
 
