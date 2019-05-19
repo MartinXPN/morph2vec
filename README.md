@@ -49,8 +49,8 @@ PYTHONHASHSEED=0 python -m morph2vec.data.preprocess preprocess_wiki datasets/ru
 * To train a fastText model (Training a model on half of the russian wiki takes ~4 hours on 4 core CPU):
 ```bash
 PYTHONHASHSEED=0 python -m morph2vec.train 
-        train_unsupervised --input /mnt/2tb/ru-wiki.wltmn --model skipgram --props w+l+t+m+n --lr 0.05 --dim 300 --ws 5 --epoch 5 --minCount 5 --minCountLabel 0 --minn 3 --maxn 6 --neg 5 --wordNgrams 1 --loss ns --bucket 2000000 --thread 8 --lrUpdateRate 100 --t 1e-4 --label __label__ --verbose 2 --pretrainedVectors "" 
-        save_model --path logs/ru.bin
+        train_unsupervised --input datasets/ru-wiki.wltmn --model skipgram --props w+l+t+m --lr 0.05 --dim 300 --ws 5 --epoch 5 --minCount 1 --minCountLabel 0 --minn 3 --maxn 6 --neg 5 --wordNgrams 1 --loss ns --bucket 2000000 --thread 16 --lrUpdateRate 100 --t 1e-4 --label __label__ --verbose 2 --pretrainedVectors "" 
+        save_model --path logs/ru-wltm.bin
 ```
 
 * To do a hyperparameter search:
