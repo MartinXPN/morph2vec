@@ -48,7 +48,7 @@ def bootstrap(model, word_pairs: List[Tuple[str, str]], gold_similarity: List[fl
               bootrstrap_count: int, bootrstrap_split: float, confidence_percent: float = 0.95) -> Tuple[float, float]:
 
     scores = []
-    for i in range(bootrstrap_count):
+    for _ in tqdm(range(bootrstrap_count)):
         cur_pairs, cur_gold = sklearn.utils.resample(word_pairs, gold_similarity,
                                                      n_samples=int(len(word_pairs) * bootrstrap_split))
         score = evaluate(model=model, word_pairs=cur_pairs, gold_similarity=cur_gold)
