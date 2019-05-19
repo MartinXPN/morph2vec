@@ -63,7 +63,7 @@ def bootstrap(model, word_pairs: List[Tuple[str, str]], gold_similarity: List[fl
 
 
 def main(model_path: str, data_path: str,
-         bootstrap_count: int = 0, bootstrap_split: float = 0.6, confidence_percent: float = 0.95):
+         bootstrap_count: int = 0, bootstrap_split: float = 0.8, confidence_percent: float = 0.95):
     word_pairs, gold_similarity = load_eval_data(path=data_path)
 
     print('Loading fasttext model...', end=' ', flush=True)
