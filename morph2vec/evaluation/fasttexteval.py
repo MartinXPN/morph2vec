@@ -86,18 +86,14 @@ def evaluate_cli(model_path: str, data_path: str, save_vectors_path: str = None)
 
 
 def bootstrap(word_pairs: List[Tuple[str, str]], gold_similarity: List[float],
-              model=None, word2vec: Dict[str, np.ndarray] = None,
+              word2vec: Dict[str, np.ndarray] = None,
               bootstrap_count: int = 10000, confidence_percent: float = 0.95) -> Tuple[float, float, float, float]:
 
     scores = []
     for _ in tqdm(range(bootstrap_count)):
-        if model:
-            cur_pairs, cur_gold = sklearn.utils.resample(word_pairs, gold_similarity, n_samples=len(word_pairs))
-            score = evaluate_model(model=model, word_pairs=cur_pairs, gold_similarity=cur_gold)
-        else:
-            cur_pairs, cur_gold = sklearn.utils.resample(word_pairs, gold_similarity, n_samples=len(word_pairs))
-            score = evaluate_vectors(word_vectors=[(word2vec[w1], word2vec[w2]) for w1, w2 in cur_pairs],
-                                     gold_similarity=cur_gold)
+        cur_pairs, cur_gold = sklearn.utils.resample(word_pairs, gold_similarity, n_samples=len(word_pairs))
+        score = evaluate_vectors(word_vectors=[(word2vec[w1], word2vec[w2]) for w1, w2 in cur_pairs],
+                                 gold_similarity=cur_gold)
         scores.append(score)
 
     mean = np.mean(scores)
