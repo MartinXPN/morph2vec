@@ -62,6 +62,13 @@ PYTHONHASHSEED=0 python -m morph2vec.hyperparametersearch
 
 * To evaluate the model:
 ```bash
-PYTHONHASHSEED=0 python -m morph2vec.evaluation.fasttexteval 
-        --model_path logs/ru.bin --data_path datasets/eval-test-processed.txt
+# Evaluate and save results:
+PYTHONHASHSEED=0 python -m morph2vec.evaluation.fasttexteval evaluate --model_path logs/ru.bin --data_path datasets/hj-expanded-rare-all-processed.txt --save_vectors_path logs/hj-pred.txt
+
+
+# Bootstrapping to get confidence intervals, mean and std of Spearman's correlation
+PYTHONHASHSEED=0 python -m morph2vec.evaluation.fasttexteval bootstrap --gold_path datasets/hj-expanded-rare-all-processed.txt --predicted_path logs/hj-pred.txt --bootstrap_count 10000 --confidence_percent 0.95
+
+# Or by providing a model instead of the (word  vector) file
+PYTHONHASHSEED=0 python -m morph2vec.evaluation.fasttexteval bootstrap --gold_path datasets/hj-expanded-rare-all-processed.txt --model_path logs/ru.bin --bootstrap_count 10000 --confidence_percent 0.95
 ```

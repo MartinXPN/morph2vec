@@ -77,12 +77,13 @@ def evaluate_cli(model_path: str, data_path: str, save_vectors_path: str = None)
     dataset = os.path.basename(data_path)
     print(f'Score for the dataset {dataset}: {score * 100}')
 
+    assert len(vectors) == len(word_pairs), 'Need to have all vectors for all word-pairs'
     if not save_vectors_path:
         return
     with open(save_vectors_path, 'w') as f:
         for (w1, w2), (v1, v2) in zip(word_pairs, vectors):
-            f.write(w1 + '\t' + str(' '.join(v1)) + '\n')
-            f.write(w2 + '\t' + str(' '.join(v2)) + '\n')
+            f.write(w1 + '\t' + np.array2string(v1) + '\n')
+            f.write(w2 + '\t' + np.array2string(v2) + '\n')
 
 
 def bootstrap(word_pairs: List[Tuple[str, str]], gold_similarity: List[float],
