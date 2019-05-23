@@ -1,4 +1,4 @@
-from typing import Tuple, List
+from typing import Tuple, List, Union, Dict
 
 import os
 import fire
@@ -8,28 +8,6 @@ import sklearn.utils
 from fastText import load_model
 from scipy import stats
 from tqdm import tqdm
-
-
-def similarity(v1: np.ndarray, v2: np.ndarray):
-    n1 = np.linalg.norm(v1)
-    n2 = np.linalg.norm(v2)
-    return np.dot(v1, v2) / n1 / n2
-
-
-def evaluate(model, word_pairs: List[Tuple[str, str]], gold_similarity: List[float]):
-    predicted_sim = []
-    for word1, word2 in word_pairs:
-        v1, v2 = model.get_word_vector(word1), model.get_word_vector(word2)
-        assert np.any(v1), f'{word1} word-vector cannot be zero'
-        assert np.any(v2), f'{word2} word-vector cannot be zero'
-        s = similarity(v1, v2)
-        predicted_sim.append(s)
-
-    assert len(predicted_sim) == len(gold_similarity)
-    # The inspector thinks that stats.spearmanr takes integer arguments instead of lists
-    # noinspection PyTypeChecker
-    corr = stats.spearmanr(predicted_sim, gold_similarity)
-    return corr[0]
 
 
 def load_eval_data(path: str):
@@ -44,43 +22,123 @@ def load_eval_data(path: str):
     return word_pairs, gold_similarity
 
 
-def bootstrap(model, word_pairs: List[Tuple[str, str]], gold_similarity: List[float],
-              bootrstrap_count: int, bootrstrap_split: float, confidence_percent: float = 0.95) -> Tuple[float, float]:
-
-    scores = []
-    for _ in tqdm(range(bootrstrap_count)):
-        cur_pairs, cur_gold = sklearn.utils.resample(word_pairs, gold_similarity,
-                                                     n_samples=int(len(word_pairs) * bootrstrap_split))
-        score = evaluate(model=model, word_pairs=cur_pairs, gold_similarity=cur_gold)
-        scores.append(score)
-
-    p = ((1.0 - confidence_percent) / 2.0) * 100
-    lower = max(0.0, np.percentile(scores, p))
-    p = (confidence_percent + ((1.0 - confidence_percent) / 2.0)) * 100
-    upper = min(1.0, np.percentile(scores, p))
-
-    return lower, upper
+def load_word_vectors(path: str) -> Dict[str, np.ndarray]:
+    res = {}
+    with open(path, 'r') as f:
+        w, v = f.readline().strip().split('\t')
+        v = np.fromstring(v)
+        res[w] = v
+    return res
 
 
-def main(model_path: str, data_path: str,
-         bootstrap_count: int = 0, bootstrap_split: float = 0.8, confidence_percent: float = 0.95):
+def similarity(v1: np.ndarray, v2: np.ndarray):
+    n1 = np.linalg.norm(v1)
+    n2 = np.linalg.norm(v2)
+    return np.dot(v1, v2) / n1 / n2
+
+
+def evaluate_vectors(word_vectors: List[Tuple[np.ndarray, np.ndarray]], gold_similarity: List[float]) -> float:
+    predicted_sim = []
+    for v1, v2 in word_vectors:
+        s = similarity(v1, v2)
+        predicted_sim.append(s)
+
+    assert len(predicted_sim) == len(gold_similarity)
+    # The inspector thinks that stats.spearmanr takes integer arguments instead of lists
+    # noinspection PyTypeChecker
+    corr = stats.spearmanr(predicted_sim, gold_similarity)
+    return corr[0]
+
+
+def evaluate_model(model, word_pairs: List[Tuple[str, str]], gold_similarity: List[float],
+                   with_vectors: bool = False) -> Union[float,
+                                                        Tuple[float, List[Tuple[np.ndarray, np.ndarray]]]]:
+
+    word_vectors = []
+    for word1, word2 in word_pairs:
+        v1, v2 = model.get_word_vector(word1), model.get_word_vector(word2)
+        word_vectors.append((v1, v2))
+
+    res = evaluate_vectors(word_vectors=word_vectors, gold_similarity=gold_similarity)
+    if with_vectors:
+        return res, word_vectors
+    return res
+
+
+def evaluate_cli(model_path: str, data_path: str, save_vectors_path: str = None):
     word_pairs, gold_similarity = load_eval_data(path=data_path)
 
     print('Loading fasttext model...', end=' ', flush=True)
     model = load_model(model_path)
     print('Done!')
 
-    if bootstrap_count == 0:
-        score = evaluate(model=model, word_pairs=word_pairs, gold_similarity=gold_similarity)
-        dataset = os.path.basename(data_path)
-        print("Score for the dataset {0:20s}: {1:2.0f}".format(dataset, score * 100))
+    score, vectors = evaluate_model(model=model, word_pairs=word_pairs, gold_similarity=gold_similarity,
+                                    with_vectors=True)
+    dataset = os.path.basename(data_path)
+    print(f'Score for the dataset {dataset}: {score * 100}')
 
+    if not save_vectors_path:
+        return
+    with open(save_vectors_path, 'w') as f:
+        for (w1, w2), (v1, v2) in zip(word_pairs, vectors):
+            f.write(w1 + '\t' + str(' '.join(v1)) + '\n')
+            f.write(w2 + '\t' + str(' '.join(v2)) + '\n')
+
+
+def bootstrap(word_pairs: List[Tuple[str, str]], gold_similarity: List[float],
+              model=None, word2vec: Dict[str, np.ndarray] = None,
+              bootstrap_count: int = 10000, confidence_percent: float = 0.95) -> Tuple[float, float, float, float]:
+
+    scores = []
+    for _ in tqdm(range(bootstrap_count)):
+        if model:
+            cur_pairs, cur_gold = sklearn.utils.resample(word_pairs, gold_similarity, n_samples=len(word_pairs))
+            score = evaluate_model(model=model, word_pairs=cur_pairs, gold_similarity=cur_gold)
+        else:
+            cur_pairs, cur_gold = sklearn.utils.resample(word_pairs, gold_similarity, n_samples=len(word_pairs))
+            score = evaluate_vectors(word_vectors=[(word2vec[w1], word2vec[w2]) for w1, w2 in cur_pairs],
+                                     gold_similarity=cur_gold)
+        scores.append(score)
+
+    mean = np.mean(scores)
+    std = np.std(scores)
+    p = ((1.0 - confidence_percent) / 2.0) * 100
+    lower = max(0.0, np.percentile(scores, p))
+    p = (confidence_percent + ((1.0 - confidence_percent) / 2.0)) * 100
+    upper = min(1.0, np.percentile(scores, p))
+
+    return float(mean), float(std), lower, upper
+
+
+def bootstrap_cli(gold_path: str, model_path: str = None, predicted_path: str = None,
+                  bootstrap_count: int = 10000, confidence_percent: float = 0.95):
+
+    word_pairs, gold_similarity = load_eval_data(path=gold_path)
+
+    assert model_path or predicted_path, 'Either `model_path` or `predicted_path` need to be provided'
+    if model_path:
+        print('Loading fasttext model...', end=' ', flush=True)
+        model = load_model(model_path)
+        print('Done!')
+        sim, predicted_word_vectors = evaluate_model(model=model,
+                                                     word_pairs=word_pairs, gold_similarity=gold_similarity,
+                                                     with_vectors=True)
+        word2vec = {}
+        for (w1, w2), (v1, v2) in zip(word_pairs, predicted_word_vectors):
+            word2vec[w1] = v1
+            word2vec[w2] = v2
     else:
-        lower, upper = bootstrap(model=model, word_pairs=word_pairs, gold_similarity=gold_similarity,
-                                 bootrstrap_count=bootstrap_count, bootrstrap_split=bootstrap_split,
-                                 confidence_percent=confidence_percent)
-        print(f'{confidence_percent} confidence interval: [{lower}, {upper}]')
+        word2vec = load_word_vectors(path=predicted_path)
+
+    mean, std, lower, upper = bootstrap(word2vec=word2vec,
+                                        word_pairs=word_pairs, gold_similarity=gold_similarity,
+                                        bootstrap_count=bootstrap_count,
+                                        confidence_percent=confidence_percent)
+    print(f'{mean} +/- {std} ({confidence_percent} confidence interval: [{lower}, {upper}])')
 
 
 if __name__ == '__main__':
-    fire.Fire(main)
+    fire.Fire({
+        'evaluate': evaluate_cli,
+        'bootstrap': bootstrap_cli,
+    })

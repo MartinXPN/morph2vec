@@ -36,9 +36,9 @@ class HyperparameterSearchGym(object):
             model = train_unsupervised(input=input_path, props=props, **parameters)
 
             ''' Track results '''
-            score = fasttexteval.evaluate(model=model,
-                                          word_pairs=self.train_word_pairs,
-                                          gold_similarity=self.train_similarity)
+            score = fasttexteval.evaluate_model(model=model,
+                                                word_pairs=self.train_word_pairs,
+                                                gold_similarity=self.train_similarity)
             self.tuner.add(parameters, score)
             print(f'Evaluation score: {score}')
 
