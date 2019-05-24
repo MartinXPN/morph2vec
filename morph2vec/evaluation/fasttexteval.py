@@ -82,8 +82,8 @@ def evaluate_cli(model_path: str, data_path: str, save_vectors_path: str = None)
         return
     with open(save_vectors_path, 'w') as f:
         for (w1, w2), (v1, v2) in zip(word_pairs, vectors):
-            f.write(w1 + '\t' + np.array2string(v1) + '\n')
-            f.write(w2 + '\t' + np.array2string(v2) + '\n')
+            f.write(w1 + '\t' + ' '.join(v1.tolist()) + '\n')
+            f.write(w2 + '\t' + ' '.join(v2.tolist()) + '\n')
 
 
 def bootstrap(word_pairs: List[Tuple[str, str]], gold_similarity: List[float],
