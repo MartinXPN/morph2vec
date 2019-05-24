@@ -25,9 +25,11 @@ def load_eval_data(path: str):
 def load_word_vectors(path: str) -> Dict[str, np.ndarray]:
     res = {}
     with open(path, 'r') as f:
-        w, v = f.readline().strip().split('\t')
-        v = np.fromstring(v)
-        res[w] = v
+        for line in f:
+            w, v = line.strip().split('\t')
+            v = [float(i) for i in v.strip().split()]
+            v = np.array(v)
+            res[w] = v
     return res
 
 
