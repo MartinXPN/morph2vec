@@ -27,7 +27,7 @@ def load_word_vectors(path: str) -> Dict[str, np.ndarray]:
     res = {}
     with open(path, 'r', encoding='utf-8') as f:
         for line in f:
-            w, v = line.strip().split('\t')
+            w, v = line.strip().split(maxsplit=1)
             v = [float(i) for i in v.strip().split()]
             v = np.array(v)
             res[w] = v
