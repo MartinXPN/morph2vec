@@ -81,7 +81,7 @@ def evaluate_cli(model_path: str, data_path: str, save_vectors_path: str = None)
     score, vectors = evaluate_model(model=model, word_pairs=word_pairs, gold_similarity=gold_similarity,
                                     with_vectors=True)
     dataset = os.path.basename(data_path)
-    print(f'Score for the dataset {dataset}: {score * 100}')
+    print(f'Score for the dataset {dataset}: {score:.3f}')
 
     assert len(vectors) == len(word_pairs), 'Need to have all vectors for all word-pairs'
     if not save_vectors_path:
@@ -137,7 +137,7 @@ def bootstrap_cli(gold_path: str, model_path: str = None, predicted_path: str = 
                                         word_pairs=word_pairs, gold_similarity=gold_similarity,
                                         bootstrap_count=bootstrap_count,
                                         confidence_percent=confidence_percent)
-    print(f'{mean} +/- {std} ({confidence_percent} confidence interval: [{lower}, {upper}])')
+    print(f'{mean:.3f} +/- {std:.3f} ({confidence_percent:.3f} confidence interval: [{lower:.3f}, {upper:.3f}])')
 
 
 if __name__ == '__main__':
