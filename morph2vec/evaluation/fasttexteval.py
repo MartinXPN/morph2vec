@@ -1,3 +1,4 @@
+import warnings
 from typing import Tuple, List, Union, Dict
 
 import os
@@ -17,14 +18,14 @@ def load_eval_data(path: str):
         for line in tqdm(f.readlines()):
             w1, w2, sim = line.replace(',', ' ').split()
             word_pairs.append((w1, w2))
-            gold_similarity.append(sim)
+            gold_similarity.append(float(sim))
 
     return word_pairs, gold_similarity
 
 
 def load_word_vectors(path: str) -> Dict[str, np.ndarray]:
     res = {}
-    with open(path, 'r') as f:
+    with open(path, 'r', encoding='utf-8') as f:
         for line in f:
             w, v = line.strip().split('\t')
             v = [float(i) for i in v.strip().split()]
@@ -33,9 +34,12 @@ def load_word_vectors(path: str) -> Dict[str, np.ndarray]:
     return res
 
 
-def similarity(v1: np.ndarray, v2: np.ndarray):
+def similarity(v1: np.ndarray, v2: np.ndarray) -> float:
     n1 = np.linalg.norm(v1)
     n2 = np.linalg.norm(v2)
+    if n1 == 0 or n2 == 0:
+        warnings.warn('The norm of the vector is 0: returning similarity=0')
+        return 0
     return np.dot(v1, v2) / n1 / n2
 
 
@@ -82,7 +86,7 @@ def evaluate_cli(model_path: str, data_path: str, save_vectors_path: str = None)
     assert len(vectors) == len(word_pairs), 'Need to have all vectors for all word-pairs'
     if not save_vectors_path:
         return
-    with open(save_vectors_path, 'w') as f:
+    with open(save_vectors_path, 'w', encoding='utf-8') as f:
         for (w1, w2), (v1, v2) in zip(word_pairs, vectors):
             f.write(w1 + '\t' + ' '.join([str(i) for i in v1.tolist()]) + '\n')
             f.write(w2 + '\t' + ' '.join([str(i) for i in v2.tolist()]) + '\n')
